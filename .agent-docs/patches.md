@@ -1,12 +1,13 @@
 # Patches
 
-Two ordered patches in [`../patches/`](../patches) turn the pristine upstream
+Three ordered patches in [`../patches/`](../patches) turn the pristine upstream
 checkout into the GOST-ready tree. They apply with `patch -p1` or `git apply`
 from the repository root and were verified to reproduce the reference tree
 byte-for-byte.
 
-`package.nix` lists both under `patches = [ ... ]`, so `stdenv` applies them
-during `patchPhase` before install.
+The `patchedSrc` derivation in [`../flake.nix`](../flake.nix) lists all three
+under `patches = [ ... ]`, so `stdenv` applies them during `patchPhase` before the
+library and scripts are installed.
 
 ## 0001 — layout fixes
 
@@ -33,22 +34,43 @@ for Russian labels. The patch:
 
 ## 0002 — GOST styling
 
-Files: `line.rb`, `diagram.rb`, `process_box.rb`.
+Files: `line.rb`, `diagram.rb`.
 
 - `line.rb`: `svg_dashed_line` loses `stroke-dasharray='5,5'`; GOST wants solid.
 - `diagram.rb`: font `Helvetica` → `"Times New Roman", "Liberation Serif", serif`,
   size `12` → `15`.
-- `process_box.rb`: adds the `A0` node tag in the top-left corner, a mandatory
-  IDEF0 attribute upstream never drew.
+
+## 0003 — node numbering
+
+Files: `process_box.rb`, `diagram.rb`, `process.rb`.
+
+Upstream never drew the mandatory IDEF0 node tag, and the obvious patch — a
+literal `A0` in every box — is wrong for anything but a single-process context
+diagram. This patch computes the tag from the model tree instead:
+
+- `Process#node_number` → `A0` at the root, otherwise the parent's prefix plus
+  the child's 1-based index (`A1`, `A2`, …); grandchildren become `A11`, `A21`, …
+- `Process#child_number` / `#number_prefix` implement that recursion.
+- `Diagram#box` and `ProcessBox#initialize` accept the number, defaulting to
+  `A0` so the single-process case needs no extra wiring.
+- `ProcessBox#to_svg` draws the number in the top-left corner.
+
+A single-process model still renders `A0`; a decomposition renders distinct
+`A1`, `A2`, … per child. The numbers follow model order, not the layout engine's
+left-to-right placement (see [gotchas.md](gotchas.md)).
 
 ## Regenerating a patch
 
-Patches are the diff between a pristine checkout and the patched tree, split into
-the two logical steps. To extend:
+Each patch is the diff between one step of the series and the next, so they must
+be regenerated in order. To extend or edit safely:
 
 ```bash
 git clone https://github.com/jimmyjazz/IDEF0-SVG /tmp/idef0
 cd /tmp/idef0 && git init -q && git add -A && git commit -qm base
-# edit lib/idef0/*.rb
-git diff > patches/000N-<name>.patch
+# apply 0001, commit; apply 0002, commit; then make your 0003 edits
+git log --oneline                 # base, layout, gost-styling, ...
+git diff HEAD~1 HEAD > patches/0003-<name>.patch
 ```
+
+Regenerating an earlier patch means replaying the later ones on top, because each
+diff assumes its predecessors are already applied.

@@ -1,30 +1,41 @@
 # Usage
 
-The flake exposes the patched renderer as `packages.default` with
-`schematic` as `mainProgram`.
+The flake exposes one package per entry point plus a combined default:
+
+| Output | Contents |
+|---|---|
+| `packages.default` | all four binaries |
+| `packages.schematic` | the context/render entry point |
+| `packages.decompose` | child diagram of a process |
+| `packages.focus` | single-process view |
+| `packages.toc` | model outline to stdout |
+
+Every entry point reads the model from stdin.
+
+## Render
 
 ```bash
-# SVG from a model
+# combined default: nix run resolves schematic via meta.mainProgram
 nix run . -- < model.idef0 > model.svg
 
-# same, explicit entry point
+# a specific entry point
+nix run .#toc -- < model.idef0
 nix run .#decompose -- < model.idef0 > child.svg
 
-# build the store path, then call binaries directly
+# build the combined package, then call any binary
 nix build
 ./result/bin/schematic < model.idef0 > model.svg
 
-# development shell with ruby available
-nix develop
+# build a single entry point
+nix build .#focus
+./result/bin/focus "Управление хостелом" < model.idef0 > focus.svg
 ```
-
-Every `bin/*` entry point reads the model from stdin.
 
 ## Full pipeline
 
 ```bash
 # 1. SVG — pure Ruby, no external deps
-result/bin/schematic < model.idef0 > model.svg
+./result/bin/schematic < model.idef0 > model.svg
 
 # 2. PNG — sandbox-friendly, 300 DPI
 nix shell nixpkgs#resvg --command resvg --dpi 300 model.svg model.png

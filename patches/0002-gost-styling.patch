@@ -26,15 +26,3 @@ index 6df17e1..4ebb85a 100644
      end
    end
  end
-diff --git a/lib/idef0/process_box.rb b/lib/idef0/process_box.rb
-index 8d390ad..9cf50b2 100644
---- a/lib/idef0/process_box.rb
-+++ b/lib/idef0/process_box.rb
-@@ -30,6 +30,7 @@ module IDEF0
-     def to_svg
-       <<-XML
- <rect x='#{x1}' y='#{y1}' width='#{width}' height='#{height}' fill='none' stroke='black' />
-+<text text-anchor='start' x='#{x1 + 6}' y='#{y1 + 16}'>A0</text>
- <text text-anchor='middle' x='#{x1 + (width / 2)}' y='#{y1 + (height / 2)}'>#{name}</text>
- XML
-     end

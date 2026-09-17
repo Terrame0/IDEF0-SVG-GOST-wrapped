@@ -1,10 +1,11 @@
 # IDEF0-SVG-GOST-wrapped
 
 Nix wrapper around [jimmyjazz/IDEF0-SVG](https://github.com/jimmyjazz/IDEF0-SVG)
-that pins upstream at one commit, applies two patches for Cyrillic layout and
-GOST styling, and exposes the patched renderer as a flake package. It is
-general-purpose: any consumer can render IDEF0 diagrams without vendoring a
-patched copy by hand.
+that pins upstream at one commit, applies three patches for Cyrillic layout, GOST
+styling, and IDEF0 node numbering, then fans the result out into one flake
+package per entry point (`schematic`, `decompose`, `focus`, `toc`) plus a
+combined default. It is general-purpose: any consumer can render IDEF0 diagrams
+without vendoring a patched copy by hand.
 
 ## Before working, read the relevant doc in `.agent-docs/`
 
@@ -12,8 +13,8 @@ patched copy by hand.
   runtime, source layout, and the four `bin/*` entry points.
 - [patches.md](.agent-docs/patches.md) — what each patch changes and why, plus
   how to regenerate one.
-- [packaging.md](.agent-docs/packaging.md) — the flake and derivation structure,
-  and how to verify a build.
+- [packaging.md](.agent-docs/packaging.md) — the flake structure, the `mk-script`
+  function, how entry points are mapped to packages, and how to verify a build.
 - [usage.md](.agent-docs/usage.md) — invoking the wrapped renderer and the full
   SVG→PNG pipeline.
 - [rasterization.md](.agent-docs/rasterization.md) — DPI math, renderer flags,
