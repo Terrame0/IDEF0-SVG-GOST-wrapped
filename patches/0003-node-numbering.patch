@@ -1,0 +1,72 @@
+diff --git a/lib/idef0/diagram.rb b/lib/idef0/diagram.rb
+index dbb72d4..90800a2 100644
+--- a/lib/idef0/diagram.rb
++++ b/lib/idef0/diagram.rb
+@@ -33,8 +33,8 @@ module IDEF0
+       @height = height
+     end
+ 
+-    def box(name)
+-      @boxes.get(lambda { |p| p.name == name }) { ProcessBox.new(name) }
++    def box(name, number = "A0")
++      @boxes.get(lambda { |p| p.name == name }) { ProcessBox.new(name, number) }
+     end
+ 
+     def top_edge
+diff --git a/lib/idef0/process.rb b/lib/idef0/process.rb
+index 23f9fae..569418c 100644
+--- a/lib/idef0/process.rb
++++ b/lib/idef0/process.rb
+@@ -94,6 +94,19 @@ module IDEF0
+       !@children.empty?
+     end
+ 
++    def node_number
++      return "A0" if root?
++      @parent.child_number(self)
++    end
++
++    def child_number(child)
++      "#{number_prefix}#{@children.index(child) + 1}"
++    end
++
++    def number_prefix
++      root? ? "A" : node_number
++    end
++
+     def toc(io, indent = "")
+       io.print indent
+       io.puts @name
+@@ -129,7 +142,7 @@ module IDEF0
+     end
+ 
+     def render_box(diagram)
+-      render(diagram.box(@name))
++      render(diagram.box(@name, node_number))
+     end
+ 
+     def render(box_or_diagram)
+diff --git a/lib/idef0/process_box.rb b/lib/idef0/process_box.rb
+index 8d390ad..eff5ae1 100644
+--- a/lib/idef0/process_box.rb
++++ b/lib/idef0/process_box.rb
+@@ -6,6 +6,11 @@ module IDEF0
+   class ProcessBox < Box
+     attr_accessor :sequence
+ 
++    def initialize(name, number = "A0")
++      super(name)
++      @number = number
++    end
++
+     def precedence
+       [-right_side.anchor_count, [left_side, top_side, bottom_side].map(&:anchor_count).reduce(&:+)]
+     end
+@@ -30,6 +35,7 @@ module IDEF0
+     def to_svg
+       <<-XML
+ <rect x='#{x1}' y='#{y1}' width='#{width}' height='#{height}' fill='none' stroke='black' />
++<text text-anchor='start' x='#{x1 + 6}' y='#{y1 + 16}'>#{@number}</text>
+ <text text-anchor='middle' x='#{x1 + (width / 2)}' y='#{y1 + (height / 2)}'>#{name}</text>
+ XML
+     end

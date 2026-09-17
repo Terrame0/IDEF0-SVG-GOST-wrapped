@@ -15,7 +15,7 @@ IDEF0; the GOST look comes entirely from the patches.
 | License | MIT (James Ross, Simon Harris) |
 | `src` hash | `sha256-sbKEfiASZT7s2CXIiENnglv0zPdiptaIEhyrOvVw0yw=` |
 
-Fetched with `fetchFromGitHub` in [`../package.nix`](../package.nix). Upstream is
+Fetched with `fetchFromGitHub` in [`../flake.nix`](../flake.nix). Upstream is
 frozen; it has not seen a commit since 2018, so the pin is effectively the
 project's only dependency.
 

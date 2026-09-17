@@ -37,7 +37,23 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "sundry-input": "sundry-input"
+      }
+    },
+    "sundry-input": {
+      "locked": {
+        "lastModified": 1789225643,
+        "narHash": "sha256-O0Qgcnp3Do1R30TNqhbj5Uqo/Wqqibcv3SbHsxH8Zlw=",
+        "owner": "Terrame0",
+        "repo": "sundry",
+        "rev": "644f3ab95e126ddd27ada5f21d019aced8a80178",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Terrame0",
+        "repo": "sundry",
+        "type": "github"
       }
     },
     "systems": {
