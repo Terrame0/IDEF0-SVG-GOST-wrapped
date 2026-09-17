@@ -37,6 +37,7 @@
           ./patches/0001-layout-fixes.patch
           ./patches/0002-gost-styling.patch
           ./patches/0003-node-numbering.patch
+          ./patches/0004-parser-tolerance.patch
         ];
         dontBuild = true;
         installPhase = "cp -r . $out";

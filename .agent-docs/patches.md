@@ -1,11 +1,11 @@
 # Patches
 
-Three ordered patches in [`../patches/`](../patches) turn the pristine upstream
+Four ordered patches in [`../patches/`](../patches) turn the pristine upstream
 checkout into the GOST-ready tree. They apply with `patch -p1` or `git apply`
 from the repository root and were verified to reproduce the reference tree
 byte-for-byte.
 
-The `patchedSrc` derivation in [`../flake.nix`](../flake.nix) lists all three
+The `patchedSrc` derivation in [`../flake.nix`](../flake.nix) lists all four
 under `patches = [ ... ]`, so `stdenv` applies them during `patchPhase` before the
 library and scripts are installed.
 
@@ -59,6 +59,34 @@ A single-process model still renders `A0`; a decomposition renders distinct
 `A1`, `A2`, … per child. The numbers follow model order, not the layout engine's
 left-to-right placement (see [gotchas.md](gotchas.md)).
 
+## 0004 — parser tolerance
+
+Files: `noun.rb`, `statement.rb`.
+
+Upstream's `Noun::PATTERN` excludes `[a-z]` as a word-initial character, so a
+noun containing a Latin word written in lowercase (`Навык gost-report`,
+`Инструмент docx`) fails `Statement::FORMAT` and aborts the whole render. The
+exclusion is load-bearing upstream: it is what stops a noun from swallowing the
+verb, so simply dropping it mis-splits `Сборка is composed of Подготовка` into
+subject `Сборка is composed`, verb `of`. The patch therefore does both halves:
+
+- `noun.rb`: `PATTERN` first-character classes `[^a-z; ]` → `[^; ]`, so any
+  non-semicolon word may open a noun. This also makes reachable the
+  `gsub(/(^|\s)[a-z]/)` normaliser that uppercases the first letter of a
+  lowercase Latin word — previously dead, since the strict pattern rejected
+  every input it could have matched.
+- `statement.rb`: `FORMAT` matches the verb against a closed alternation of the
+  five connectives (`is composed of`, `receives`, `respects`, `requires`,
+  `produces`) instead of `Verb::PATTERN`. That restores the disambiguation the
+  strict noun pattern used to provide, and it mirrors
+  `Process.parse`, which already `raise`s on any other predicate.
+
+The result accepts the same inputs as before — every previously valid line had
+its verb in that closed set and no lowercase-initial word inside a noun — plus
+nouns with lowercase Latin words. The one new ambiguity: a noun that itself
+contains a connective word can still mis-split, since the regex cannot know
+which occurrence is the verb.
+
 ## Regenerating a patch
 
 Each patch is the diff between one step of the series and the next, so they must
@@ -66,10 +94,11 @@ be regenerated in order. To extend or edit safely:
 
 ```bash
 git clone https://github.com/jimmyjazz/IDEF0-SVG /tmp/idef0
-cd /tmp/idef0 && git init -q && git add -A && git commit -qm base
-# apply 0001, commit; apply 0002, commit; then make your 0003 edits
-git log --oneline                 # base, layout, gost-styling, ...
-git diff HEAD~1 HEAD > patches/0003-<name>.patch
+cd /tmp/idef0 && git checkout f689fe913260e0582905a9cb8ef7434c960112ea
+# apply 0001…0003 and commit, then make your edits and diff the working tree
+git apply /path/to/patches/0001-layout-fixes.patch   # …0002, 0003, commit
+# edit the tree for the patch you are writing, then:
+git diff > patches/0004-<name>.patch
 ```
 
 Regenerating an earlier patch means replaying the later ones on top, because each
