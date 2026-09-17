@@ -26,11 +26,30 @@ None of them can express IDEF0 ports on all four sides. Graphviz `dot` gets
 orthogonal edges but stacks controls and mechanisms in a column instead of the
 required row above and below the box.
 
-### The DSL parser is strict
+### The DSL parser normalises noun case
 
-`Noun PATTERN` rejects a lowercase word after a space and a trailing semicolon;
-comments are recognised by the string-comment detector. Keep one statement per
-line, e.g. `Функция receives Вход`.
+A Latin word written in lowercase is accepted, but `Noun.parse` uppercases its
+first letter before storing it, so `requires Навык gost-report` renders as
+`Навык Gost-report`. The rewrite used to be unreachable because the strict noun
+pattern rejected every input it could have matched; patch 0004 made the pattern
+permissive and thereby switched the rewrite on. There is no way to keep an
+all-lowercase Latin word in a label.
+
+### A noun may not contain a connective word
+
+Patch 0004 identifies the verb by matching one of the five connectives rather
+than by requiring an uppercase noun, so the parser no longer needs nouns to be
+uppercase-initial. The cost is that a noun which itself contains `receives`,
+`respects`, `requires`, `produces`, or `is composed of` can mis-split: the
+greedy noun match takes the last valid connective as the verb. Rename such a
+noun, or keep it in Cyrillic, where the connective words do not appear.
+
+### Everything else about the parser is still strict
+
+Statements are `Noun Verb Noun`, one per line; lines starting with `#` are
+ignored, semicolons are rejected, and the verb must be one of the five
+connectives — anything else aborts with a bare `RuntimeError` naming the line.
+Empty lines are dropped before parsing.
 
 ### `eachDefaultSystem` already binds `system`
 

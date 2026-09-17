@@ -1,8 +1,9 @@
 # IDEF0-SVG-GOST-wrapped
 
 Nix wrapper around [jimmyjazz/IDEF0-SVG](https://github.com/jimmyjazz/IDEF0-SVG)
-that pins upstream at one commit, applies three patches for Cyrillic layout, GOST
-styling, and IDEF0 node numbering, then fans the result out into one flake
+that pins upstream at one commit, applies four patches for Cyrillic layout, GOST
+styling, IDEF0 node numbering, and DSL parser tolerance, then fans the result out
+into one flake
 package per entry point (`schematic`, `decompose`, `focus`, `toc`) plus a
 combined default. It is general-purpose: any consumer can render IDEF0 diagrams
 without vendoring a patched copy by hand.

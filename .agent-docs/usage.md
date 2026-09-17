@@ -28,7 +28,7 @@ nix build
 
 # build a single entry point
 nix build .#focus
-./result/bin/focus "Управление хостелом" < model.idef0 > focus.svg
+./result/bin/focus "Обработка заявок" < model.idef0 > focus.svg
 ```
 
 ## Full pipeline

@@ -1,0 +1,26 @@
+diff --git a/lib/idef0/noun.rb b/lib/idef0/noun.rb
+index f49e4d5..f558574 100644
+--- a/lib/idef0/noun.rb
++++ b/lib/idef0/noun.rb
+@@ -1,6 +1,6 @@
+ module IDEF0
+   class Noun
+-    PATTERN = "[^a-z; ][^; ]*?(?: [^a-z; ][^; ]*?)*"
++    PATTERN = "[^; ][^; ]*?(?: [^; ][^; ]*?)*"
+ 
+     def self.parse(text)
+       normalised_text = text.to_s.squish.gsub(/(^|\s)[a-z]/) { |l| l.upcase }
+diff --git a/lib/idef0/statement.rb b/lib/idef0/statement.rb
+index 77281fe..8ba105a 100644
+--- a/lib/idef0/statement.rb
++++ b/lib/idef0/statement.rb
+@@ -5,7 +5,8 @@ require_relative 'string_comment_detection'
+ 
+ module IDEF0
+   class Statement
+-    FORMAT = /^(#{Noun::PATTERN}) (#{Verb::PATTERN}) (#{Noun::PATTERN})$/
++    CONNECTIVES = "is composed of|receives|respects|requires|produces"
++    FORMAT = /^(#{Noun::PATTERN}) (#{CONNECTIVES}) (#{Noun::PATTERN})$/
+ 
+     attr_reader :subject, :predicate, :object
+ 
