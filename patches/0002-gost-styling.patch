@@ -1,0 +1,40 @@
+diff --git a/lib/idef0/diagram.rb b/lib/idef0/diagram.rb
+index d4e60ee..dbb72d4 100644
+--- a/lib/idef0/diagram.rb
++++ b/lib/idef0/diagram.rb
+@@ -148,8 +148,8 @@ viewBox='#{x1.to_f} #{y1.to_f} #{x2.to_f} #{y2.to_f}'
+     background-color: white;
+   }
+   text {
+-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+-    font-size: 12px;
++    font-family: "Times New Roman", "Liberation Serif", serif;
++    font-size: 15px;
+   }
+ </style>
+ <g>
+diff --git a/lib/idef0/line.rb b/lib/idef0/line.rb
+index 6df17e1..4ebb85a 100644
+--- a/lib/idef0/line.rb
++++ b/lib/idef0/line.rb
+@@ -111,7 +111,7 @@ module IDEF0
+     end
+ 
+     def svg_dashed_line(x1, y1, x2, y2)
+-      "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke='black' stroke-dasharray='5,5' />"
++      "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke='black' />"
+     end
+   end
+ end
+diff --git a/lib/idef0/process_box.rb b/lib/idef0/process_box.rb
+index 8d390ad..9cf50b2 100644
+--- a/lib/idef0/process_box.rb
++++ b/lib/idef0/process_box.rb
+@@ -30,6 +30,7 @@ module IDEF0
+     def to_svg
+       <<-XML
+ <rect x='#{x1}' y='#{y1}' width='#{width}' height='#{height}' fill='none' stroke='black' />
++<text text-anchor='start' x='#{x1 + 6}' y='#{y1 + 16}'>A0</text>
+ <text text-anchor='middle' x='#{x1 + (width / 2)}' y='#{y1 + (height / 2)}'>#{name}</text>
+ XML
+     end

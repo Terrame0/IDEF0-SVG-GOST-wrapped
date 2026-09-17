@@ -1,0 +1,102 @@
+diff --git a/lib/idef0/diagram.rb b/lib/idef0/diagram.rb
+index 1134b52..d4e60ee 100644
+--- a/lib/idef0/diagram.rb
++++ b/lib/idef0/diagram.rb
+@@ -165,7 +165,12 @@ XML
+     end
+ 
+     def generate_lines
+-      @lines.map(&:to_svg).join("\n")
++      bodies = @lines.map(&:to_svg).join("\n")
++      labels = @lines.map do |line|
++        background = line.class.name =~ /Guidance|Mechanism/ ? line.label.to_svg_background : ""
++        "#{background}\n#{line.label.to_svg}"
++      end.join("\n")
++      "#{bodies}\n#{labels}"
+     end
+   end
+ end
+diff --git a/lib/idef0/external_guidance_line.rb b/lib/idef0/external_guidance_line.rb
+index 1ec683d..8f8f490 100644
+--- a/lib/idef0/external_guidance_line.rb
++++ b/lib/idef0/external_guidance_line.rb
+@@ -74,6 +74,7 @@ module IDEF0
+       <<-XML
+ #{svg_line(x1, y1+20, x2, y2)}
+ #{svg_down_arrow(x2, y2)}
++#{label.to_svg_background}
+ #{label.to_svg}
+ XML
+     end
+diff --git a/lib/idef0/external_mechanism_line.rb b/lib/idef0/external_mechanism_line.rb
+index 2e8662b..fac8d8d 100644
+--- a/lib/idef0/external_mechanism_line.rb
++++ b/lib/idef0/external_mechanism_line.rb
+@@ -72,6 +72,7 @@ module IDEF0
+       <<-XML
+ #{svg_line(x1, y1-20, x2, y2)}
+ #{svg_up_arrow(x2, y2)}
++#{label.to_svg_background}
+ #{label.to_svg}
+ XML
+     end
+diff --git a/lib/idef0/labels.rb b/lib/idef0/labels.rb
+index c3cb122..8bdcbb1 100644
+--- a/lib/idef0/labels.rb
++++ b/lib/idef0/labels.rb
+@@ -1,7 +1,7 @@
+ module IDEF0
+   class Label
+     def self.length(text)
+-      text.length * 6
++      (text.length * 7.5).round
+     end
+ 
+     def initialize(text, point)
+@@ -35,6 +35,10 @@ module IDEF0
+     def to_svg
+       "<text text-anchor='#{text_anchor}' x='#{@point.x}' y='#{@point.y}'>#{@text}</text>"
+     end
++
++    def to_svg_background
++      "<rect x='#{left_edge}' y='#{top_edge}' width='#{length}' height='#{bottom_edge - top_edge}' fill='white' stroke='none' />"
++    end
+   end
+ 
+   class LeftAlignedLabel < Label
+diff --git a/lib/idef0/process_box.rb b/lib/idef0/process_box.rb
+index 5916ccf..8d390ad 100644
+--- a/lib/idef0/process_box.rb
++++ b/lib/idef0/process_box.rb
+@@ -11,7 +11,8 @@ module IDEF0
+     end
+ 
+     def width
+-      [Label.length(@name)+40, [top_side.anchor_count, bottom_side.anchor_count].max*20+20].max
++      [Label.length(@name)+40,
++       [top_side.anchor_count, bottom_side.anchor_count].max * HorizontalSide::SPACING + 40].max
+     end
+ 
+     def height
+diff --git a/lib/idef0/sides.rb b/lib/idef0/sides.rb
+index e494933..4229f80 100644
+--- a/lib/idef0/sides.rb
++++ b/lib/idef0/sides.rb
+@@ -87,13 +87,15 @@ module IDEF0
+   end
+ 
+   class HorizontalSide < Side
++    SPACING = 180
++
+     def y
+       y1
+     end
+ 
+     def anchor_point(n)
+-      baseline = x1+width/2 - 20*(@anchors.count - 1)/2
+-      x = baseline + n * 20
++      baseline = x1+width/2 - SPACING*(@anchors.count - 1)/2
++      x = baseline + n * SPACING
+       Point.new(x, y)
+     end
+   end
