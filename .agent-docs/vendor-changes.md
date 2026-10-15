@@ -1,13 +1,24 @@
-# Patches
+# Vendored changes
 
-Four ordered patches in [`../patches/`](../patches) turn the pristine upstream
-checkout into the GOST-ready tree. They apply with `patch -p1` or `git apply`
-from the repository root and were verified to reproduce the reference tree
-byte-for-byte.
+Four ordered change sets turn the pristine upstream checkout into the
+GOST-ready tree that is vendored in this repository (`bin/`, `lib/`,
+`samples/`). They are already applied; there are no `.patch` files to replay.
+The numbered identifiers below are kept as the labels used by
+[gotchas.md](gotchas.md) and by history.
 
-The `patchedSrc` derivation in [`../flake.nix`](../flake.nix) lists all four
-under `patches = [ ... ]`, so `stdenv` applies them during `patchPhase` before the
-library and scripts are installed.
+To re-derive them (or to carry the vendoring to a new upstream commit), clone
+upstream at the pin, re-apply the edits by hand, and diff the working tree
+against the checkout:
+
+```bash
+git clone https://github.com/jimmyjazz/IDEF0-SVG /tmp/idef0
+cd /tmp/idef0 && git checkout f689fe913260e0582905a9cb8ef7434c960112ea
+# make the edits described below, then:
+git diff --stat
+```
+
+Each change set below is independent in intent, but 0001 and 0002 touch
+overlapping files, so apply them in the listed order when re-deriving by hand.
 
 ## 0001 — layout fixes
 
@@ -15,7 +26,7 @@ Files: `labels.rb`, `sides.rb`, `process_box.rb`, `diagram.rb`,
 `external_guidance_line.rb`, `external_mechanism_line.rb`.
 
 The upstream layout is calibrated for Latin text and packs anchors too tightly
-for Russian labels. The patch:
+for Russian labels. The change set:
 
 - `Label.length` = `len * 6` → `len * 7.5`. Cyrillic is roughly 25% wider than
   Latin at the same glyph count, so labels otherwise overlapped their boxes and
@@ -44,9 +55,9 @@ Files: `line.rb`, `diagram.rb`.
 
 Files: `process_box.rb`, `diagram.rb`, `process.rb`.
 
-Upstream never drew the mandatory IDEF0 node tag, and the obvious patch — a
+Upstream never drew the mandatory IDEF0 node tag, and the obvious change — a
 literal `A0` in every box — is wrong for anything but a single-process context
-diagram. This patch computes the tag from the model tree instead:
+diagram. This change computes the tag from the model tree instead:
 
 - `Process#node_number` → `A0` at the root, otherwise the parent's prefix plus
   the child's 1-based index (`A1`, `A2`, …); grandchildren become `A11`, `A21`, …
@@ -68,7 +79,7 @@ noun containing a Latin word written in lowercase (`Навык gost-report`,
 `Инструмент docx`) fails `Statement::FORMAT` and aborts the whole render. The
 exclusion is load-bearing upstream: it is what stops a noun from swallowing the
 verb, so simply dropping it mis-splits `Сборка is composed of Подготовка` into
-subject `Сборка is composed`, verb `of`. The patch therefore does both halves:
+subject `Сборка is composed`, verb `of`. The change therefore does both halves:
 
 - `noun.rb`: `PATTERN` first-character classes `[^a-z; ]` → `[^; ]`, so any
   non-semicolon word may open a noun. This also makes reachable the
@@ -86,20 +97,3 @@ its verb in that closed set and no lowercase-initial word inside a noun — plus
 nouns with lowercase Latin words. The one new ambiguity: a noun that itself
 contains a connective word can still mis-split, since the regex cannot know
 which occurrence is the verb.
-
-## Regenerating a patch
-
-Each patch is the diff between one step of the series and the next, so they must
-be regenerated in order. To extend or edit safely:
-
-```bash
-git clone https://github.com/jimmyjazz/IDEF0-SVG /tmp/idef0
-cd /tmp/idef0 && git checkout f689fe913260e0582905a9cb8ef7434c960112ea
-# apply 0001…0003 and commit, then make your edits and diff the working tree
-git apply /path/to/patches/0001-layout-fixes.patch   # …0002, 0003, commit
-# edit the tree for the patch you are writing, then:
-git diff > patches/0004-<name>.patch
-```
-
-Regenerating an earlier patch means replaying the later ones on top, because each
-diff assumes its predecessors are already applied.

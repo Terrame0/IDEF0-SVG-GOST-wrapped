@@ -1,9 +1,9 @@
 # Upstream
 
-The wrapper vendors [jimmyjazz/IDEF0-SVG](https://github.com/jimmyjazz/IDEF0-SVG)
-at a fixed commit and feeds it to a Nix build. Everything else in this repo is
-either a patch against that pin or Nix glue around it. Upstream renders plain
-IDEF0; the GOST look comes entirely from the patches.
+The renderer is [jimmyjazz/IDEF0-SVG](https://github.com/jimmyjazz/IDEF0-SVG),
+vendored in place so the repository itself is the patched source. Everything
+under `bin/`, `lib/`, and `samples/` is that project; the GOST look comes from
+the changes already applied to it (see [vendor-changes.md](vendor-changes.md)).
 
 ## Pin
 
@@ -13,11 +13,11 @@ IDEF0; the GOST look comes entirely from the patches.
 | Commit | `f689fe913260e0582905a9cb8ef7434c960112ea` |
 | Date | 2018-10-14 |
 | License | MIT (James Ross, Simon Harris) |
-| `src` hash | `sha256-sbKEfiASZT7s2CXIiENnglv0zPdiptaIEhyrOvVw0yw=` |
 
-Fetched with `fetchFromGitHub` in [`../flake.nix`](../flake.nix). Upstream is
+The vendored tree is that commit with the four change sets applied. Upstream is
 frozen; it has not seen a commit since 2018, so the pin is effectively the
-project's only dependency.
+project's only dependency. There is no `fetchFromGitHub` and no patch phase:
+[`../flake.nix`](../flake.nix) builds `src = ./.` directly.
 
 ## Runtime
 
@@ -31,6 +31,9 @@ bin/          executable entry points
 lib/idef0/    all library code
 samples/      .idef0 sources and rendered .svg references
 ```
+
+The flake adds `flake.nix` and this `.agent-docs/` directory on top; those are
+not upstream.
 
 ## Entry points
 

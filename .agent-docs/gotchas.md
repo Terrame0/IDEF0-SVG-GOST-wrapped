@@ -1,6 +1,6 @@
 # Gotchas
 
-Traps that are not visible from reading the code or the patches.
+Traps that are not visible from reading the code or the vendored changes.
 
 ### `Label.length` is a heuristic, not text metrics
 
@@ -31,13 +31,13 @@ required row above and below the box.
 A Latin word written in lowercase is accepted, but `Noun.parse` uppercases its
 first letter before storing it, so `requires Навык gost-report` renders as
 `Навык Gost-report`. The rewrite used to be unreachable because the strict noun
-pattern rejected every input it could have matched; patch 0004 made the pattern
+pattern rejected every input it could have matched; change 0004 made the pattern
 permissive and thereby switched the rewrite on. There is no way to keep an
 all-lowercase Latin word in a label.
 
 ### A noun may not contain a connective word
 
-Patch 0004 identifies the verb by matching one of the five connectives rather
+Change 0004 identifies the verb by matching one of the five connectives rather
 than by requiring an uppercase noun, so the parser no longer needs nouns to be
 uppercase-initial. The cost is that a noun which itself contains `receives`,
 `respects`, `requires`, `produces`, or `is composed of` can mis-split: the
@@ -57,13 +57,6 @@ Inside `flake-utils.lib.eachDefaultSystem`, writing `packages.${system}.default`
 double-nests the attribute into `packages.x86_64-linux.x86_64-linux.default` and
 breaks `nix build`. Declare outputs bare: `packages.default`.
 
-### A plausible `fetchFromGitHub` hash can be wrong
-
-The pin's `sha256` was initially written from memory and did not match, which
-surfaces only at build time as a fixed-output hash mismatch. Confirm with
-`nix-prefetch-git --url <url> --rev <rev>` or paste the `got:` hash from the
-Nix error.
-
 ### `nix run .#<name>` needs a matching package, not an `apps` output
 
 There is no `apps` output. `nix run .#decompose` works only because `nix run`
@@ -79,7 +72,7 @@ to a `.gitignore`.
 
 ### Node numbers follow model order, not layout order
 
-Patch 0003 assigns `A1`, `A2`, … by the process's index among its parent's
+Change 0003 assigns `A1`, `A2`, … by the process's index among its parent's
 children, but the layout engine reorders boxes to minimise line crossings. A
 decomposition can therefore render `A2` left of `A1` (upstream's
 `cook-pizza.idef0` draws `A2`, `A1`, `A3` left to right). The numbers are correct

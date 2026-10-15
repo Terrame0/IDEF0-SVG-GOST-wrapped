@@ -24,29 +24,14 @@
         license = lib.licenses.mit;
         platforms = lib.platforms.unix;
       };
-      patched-src = pkgs.stdenvNoCC.mkDerivation {
-        pname = "patched-src";
-        inherit version;
-        src = pkgs.fetchFromGitHub {
-          owner = "jimmyjazz";
-          repo = "IDEF0-SVG";
-          rev = "f689fe913260e0582905a9cb8ef7434c960112ea";
-          hash = "sha256-sbKEfiASZT7s2CXIiENnglv0zPdiptaIEhyrOvVw0yw=";
-        };
-        patches = [
-          ./patches/0001-layout-fixes.patch
-          ./patches/0002-gost-styling.patch
-          ./patches/0003-node-numbering.patch
-          ./patches/0004-parser-tolerance.patch
-        ];
-        dontBuild = true;
-        installPhase = "cp -r . $out";
+      src = lib.fileset.toSource {
+        root = ./.;
+        fileset = lib.fileset.unions [./bin ./lib ./samples];
       };
 
       runtime = pkgs.stdenvNoCC.mkDerivation {
         pname = "runtime";
-        inherit version;
-        src = patched-src;
+        inherit version src;
         dontBuild = true;
         installPhase = ''
           runHook preInstall
@@ -60,8 +45,7 @@
       mk-script = name:
         pkgs.stdenvNoCC.mkDerivation {
           pname = "idef0-svg-${name}";
-          inherit version;
-          src = patched-src;
+          inherit version src;
           nativeBuildInputs = [pkgs.makeWrapper];
           dontBuild = true;
           installPhase = ''

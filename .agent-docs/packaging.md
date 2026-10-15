@@ -1,9 +1,9 @@
 # Packaging
 
 All Nix logic lives in [`../flake.nix`](../flake.nix); there is no separate
-`package.nix` and no per-script files. The flake builds the patched source once,
-then maps a list of entry-point names through a `mk-script` function to produce
-one derivation each.
+`package.nix` and no per-script files. The flake builds the vendored source
+once, then maps a list of entry-point names through a `mk-script` function to
+produce one derivation each.
 
 ## Flake inputs
 
@@ -17,19 +17,39 @@ one derivation each.
 `sundry = sundry-input.mk-lib { inherit pkgs; }`. It is only needed for the
 name/value pairing in the entry-point mapping, not for building any derivation.
 
+## Source
+
+`src` is a `lib.fileset` over the repository root that keeps only `bin/`, `lib/`,
+and `samples/`:
+
+```nix
+src = lib.fileset.toSource {
+  root = ./.;
+  fileset = lib.fileset.unions [ ./bin ./lib ./samples ];
+};
+```
+
+The renderer is vendored at the root (see [upstream.md](upstream.md)), so there
+is no `fetchFromGitHub` and no patch phase: `stdenv` installs the tree as-is.
+Scoping the fileset to the renderer directories means edits to `flake.nix`,
+`.agent-docs/`, or `README.md` do not change the source hash and do not trigger
+a rebuild. Because the flake lives in a git repository, Nix copies only
+git-tracked files into the store, so an untracked `result` symlink never leaks
+into the build.
+
 ## Layers in flake.nix
 
 | Name | Kind | Purpose |
 |---|---|---|
-| `patched-src` | derivation | upstream + all patches, installed verbatim (`cp -r . $out`) |
+| `src` | path | `bin/`, `lib/`, `samples/` from the repository root, as a `lib.fileset` |
 | `runtime` | derivation | `$out/lib/idef0` — the shared Ruby library |
 | `mk-script` | function | builds one binary from a script name |
 | `entry-points` | list | `schematic`, `decompose`, `focus`, `toc` |
 | `scripts` | attrset | names zipped with `mk-script` results via `sundry` |
 | `default` | `buildEnv` | bundles all four for `nix build` / `nix run` |
 
-`patched-src` is the single place the patches are applied, so the library and
-every script come from the same patched revision.
+`runtime` and every `mk-script` derivation share the same `src`, so the library
+and every script come from the same tree.
 
 ## mk-script
 
@@ -37,8 +57,7 @@ every script come from the same patched revision.
 mk-script = name:
   pkgs.stdenvNoCC.mkDerivation {
     pname = "idef0-svg-${name}";
-    inherit version;
-    src = patched-src;
+    inherit version src;
     nativeBuildInputs = [ pkgs.makeWrapper ];
     dontBuild = true;
     installPhase = ''
@@ -104,14 +123,21 @@ working.
 
 ```bash
 nix build
-# `default` is a buildEnv with no `src`; take the patched tree from a script pkg
+# `default` is a buildEnv with no `src`; take the vendored tree from a script pkg
 src=$(nix eval --raw ".#packages.x86_64-linux.schematic.src.outPath")
 result/bin/schematic < "$src/samples/cook-pizza.idef0" > /tmp/out.svg
-rg -c "Times New Roman" /tmp/out.svg   # patch 0002 landed
+rg -c "Times New Roman" /tmp/out.svg   # 0002 landed
 rg "stroke-dasharray" /tmp/out.svg     # must be absent
-rg -c ">A[0-9]+<" /tmp/out.svg         # node tags present (patch 0003)
+rg -c ">A[0-9]+<" /tmp/out.svg         # node tags present (0003)
 
 # per-entry-point packages
 nix build .#decompose
 ./result/bin/decompose "Some Process" < model.idef0 > child.svg
+```
+
+The patched tree can also be exercised without Nix, since the runtime is Ruby
+stdlib only:
+
+```bash
+ruby bin/schematic < samples/cook-pizza.idef0 > /tmp/out.svg
 ```
