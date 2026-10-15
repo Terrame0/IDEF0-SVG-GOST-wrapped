@@ -74,6 +74,7 @@ module IDEF0
       <<-XML
 #{svg_line(x1, y1+20, x2, y2)}
 #{svg_down_arrow(x2, y2)}
+#{label.to_svg_background}
 #{label.to_svg}
 XML
     end

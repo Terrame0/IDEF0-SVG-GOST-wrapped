@@ -1,14 +1,14 @@
-# Vendored changes
+# Upstream changes
 
-Four ordered change sets turn the pristine upstream checkout into the
-GOST-ready tree that is vendored in this repository (`bin/`, `lib/`,
-`samples/`). They are already applied; there are no `.patch` files to replay.
-The numbered identifiers below are kept as the labels used by
-[gotchas.md](gotchas.md) and by history.
+Five change sets are carried on top of the pinned upstream commit
+`f689fe913260e0582905a9cb8ef7434c960112ea`, turning the pristine tree into the
+GOST-ready renderer at the repository root (`bin/`, `lib/`, `samples/`). They are
+already applied; there are no `.patch` files to replay. The numbered identifiers
+below are kept as the labels used by [gotchas.md](gotchas.md) and by history.
 
-To re-derive them (or to carry the vendoring to a new upstream commit), clone
-upstream at the pin, re-apply the edits by hand, and diff the working tree
-against the checkout:
+To re-derive them, or to carry them onto a newer upstream commit, clone upstream
+at the pin, re-apply the edits by hand, and diff the working tree against the
+checkout:
 
 ```bash
 git clone https://github.com/jimmyjazz/IDEF0-SVG /tmp/idef0
@@ -97,3 +97,31 @@ its verb in that closed set and no lowercase-initial word inside a noun — plus
 nouns with lowercase Latin words. The one new ambiguity: a noun that itself
 contains a connective word can still mis-split, since the regex cannot know
 which occurrence is the verb.
+
+## 0005 — external mechanism deduplication
+
+Files: `diagram.rb`, `line.rb`, `external_mechanism_line.rb`, new
+`external_mechanism_bus.rb`.
+
+Every process that `requires` a mechanism previously drew its own vertical
+arrow from the diagram's bottom edge, so a mechanism shared by N processes
+produced N parallel arrows and N copies of its label. GOST examples draw one
+mechanism feeding several processes instead: a single vertical trunk, a
+horizontal bus, and short branch stubs with up-arrows into each box.
+
+- `Line#external_mechanism?` → `false`; `ExternalMechanismLine` (and therefore
+  `UnsatisfiedMechanismLine`, its subclass) overrides it to `true`. Internal
+  forward/backward mechanism lines are not marked.
+- `ExternalMechanismBus` holds the lines that share one mechanism name. It
+  computes the trunk x as the leftmost target anchor, the baseline as the common
+  `y1` (all external mechanism lines share it — see `bounds`), and the bus y as
+  just below the lowest target box. It draws the trunk, the bus, each branch
+  stub, the up-arrows, and one label.
+- `Diagram#generate_lines` groups `external_mechanism?` lines by name; groups of
+  two or more are replaced by one bus, singletons render as before. The bus is
+  emitted in the bodies pass and its single label in the labels pass, so it
+  obeys the same two-pass ordering as every other line.
+
+Internal mechanism lines (a process `produces` a name that another `requires`)
+are L-shaped from the producer's right side and are left untouched; only the
+external, bottom-entering mechanisms shown in GOST examples are deduplicated.

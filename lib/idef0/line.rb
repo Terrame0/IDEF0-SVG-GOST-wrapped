@@ -17,6 +17,10 @@ module IDEF0
       self.class.name =~ /::Backward.*$/
     end
 
+    def external_mechanism?
+      false
+    end
+
     def label
       LeftAlignedLabel.new(@name, Point.new(source_anchor.x+5, source_anchor.y-5))
     end
@@ -111,7 +115,7 @@ module IDEF0
     end
 
     def svg_dashed_line(x1, y1, x2, y2)
-      "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke='black' stroke-dasharray='5,5' />"
+      "<line x1='#{x1}' y1='#{y1}' x2='#{x2}' y2='#{y2}' stroke='black' />"
     end
   end
 end

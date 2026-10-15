@@ -1,6 +1,6 @@
 # Gotchas
 
-Traps that are not visible from reading the code or the vendored changes.
+Traps that are not visible from reading the code or the upstream changes.
 
 ### `Label.length` is a heuristic, not text metrics
 
@@ -79,3 +79,20 @@ decomposition can therefore render `A2` left of `A1` (upstream's
 and unique; their left-to-right position is not guaranteed. Only the
 single-process context diagram — the `gost-report` case — is unaffected, since it
 has exactly one box.
+
+### External mechanisms are deduplicated by name alone
+
+Change 0005 merges every external mechanism that shares a name into one trunk,
+because the DSL gives `requires` no other identity than the label. Two genuinely
+separate mechanisms that happen to share a name (or two `requires` lines on the
+same process) therefore collapse into one. Use distinct names to keep them
+apart.
+
+### Only external mechanisms branch
+
+The dedup in change 0005 covers `ExternalMechanismLine` and
+`UnsatisfiedMechanismLine` — the bottom-entering mechanisms a `requires` draws
+when nothing `produces` that name. A mechanism that a process `produces` (so it
+becomes an internal forward/backward line) keeps its own L-shaped arrow per
+target and is not merged; giving a process a `produces` for a name another
+process `requires` takes that name out of the deduplicated set.

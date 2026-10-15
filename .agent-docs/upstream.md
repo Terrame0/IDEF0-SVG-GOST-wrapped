@@ -3,7 +3,8 @@
 The renderer is [jimmyjazz/IDEF0-SVG](https://github.com/jimmyjazz/IDEF0-SVG),
 vendored in place so the repository itself is the patched source. Everything
 under `bin/`, `lib/`, and `samples/` is that project; the GOST look comes from
-the changes already applied to it (see [vendor-changes.md](vendor-changes.md)).
+the changes already applied to it (see
+[upstream-changes.md](upstream-changes.md)).
 
 ## Pin
 
@@ -14,7 +15,7 @@ the changes already applied to it (see [vendor-changes.md](vendor-changes.md)).
 | Date | 2018-10-14 |
 | License | MIT (James Ross, Simon Harris) |
 
-The vendored tree is that commit with the four change sets applied. Upstream is
+The vendored tree is that commit with the five change sets applied. Upstream is
 frozen; it has not seen a commit since 2018, so the pin is effectively the
 project's only dependency. There is no `fetchFromGitHub` and no patch phase:
 [`../flake.nix`](../flake.nix) builds `src = ./.` directly.

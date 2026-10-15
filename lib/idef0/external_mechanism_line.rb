@@ -18,6 +18,10 @@ module IDEF0
       self
     end
 
+    def external_mechanism?
+      true
+    end
+
     def bounds(bounds)
       add_clearance_from(@target.bottom_side, bounds.y2 - y1 + 40)
     end
@@ -72,6 +76,7 @@ module IDEF0
       <<-XML
 #{svg_line(x1, y1-20, x2, y2)}
 #{svg_up_arrow(x2, y2)}
+#{label.to_svg_background}
 #{label.to_svg}
 XML
     end

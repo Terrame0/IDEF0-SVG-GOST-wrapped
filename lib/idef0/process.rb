@@ -94,6 +94,19 @@ module IDEF0
       !@children.empty?
     end
 
+    def node_number
+      return "A0" if root?
+      @parent.child_number(self)
+    end
+
+    def child_number(child)
+      "#{number_prefix}#{@children.index(child) + 1}"
+    end
+
+    def number_prefix
+      root? ? "A" : node_number
+    end
+
     def toc(io, indent = "")
       io.print indent
       io.puts @name
@@ -129,7 +142,7 @@ module IDEF0
     end
 
     def render_box(diagram)
-      render(diagram.box(@name))
+      render(diagram.box(@name, node_number))
     end
 
     def render(box_or_diagram)

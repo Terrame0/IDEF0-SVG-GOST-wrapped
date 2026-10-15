@@ -1,7 +1,7 @@
 module IDEF0
   class Label
     def self.length(text)
-      text.length * 6
+      (text.length * 7.5).round
     end
 
     def initialize(text, point)
@@ -34,6 +34,10 @@ module IDEF0
 
     def to_svg
       "<text text-anchor='#{text_anchor}' x='#{@point.x}' y='#{@point.y}'>#{@text}</text>"
+    end
+
+    def to_svg_background
+      "<rect x='#{left_edge}' y='#{top_edge}' width='#{length}' height='#{bottom_edge - top_edge}' fill='white' stroke='none' />"
     end
   end
 

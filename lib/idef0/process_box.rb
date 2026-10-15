@@ -6,12 +6,18 @@ module IDEF0
   class ProcessBox < Box
     attr_accessor :sequence
 
+    def initialize(name, number = "A0")
+      super(name)
+      @number = number
+    end
+
     def precedence
       [-right_side.anchor_count, [left_side, top_side, bottom_side].map(&:anchor_count).reduce(&:+)]
     end
 
     def width
-      [Label.length(@name)+40, [top_side.anchor_count, bottom_side.anchor_count].max*20+20].max
+      [Label.length(@name)+40,
+       [top_side.anchor_count, bottom_side.anchor_count].max * HorizontalSide::SPACING + 40].max
     end
 
     def height
@@ -29,6 +35,7 @@ module IDEF0
     def to_svg
       <<-XML
 <rect x='#{x1}' y='#{y1}' width='#{width}' height='#{height}' fill='none' stroke='black' />
+<text text-anchor='start' x='#{x1 + 6}' y='#{y1 + 16}'>#{@number}</text>
 <text text-anchor='middle' x='#{x1 + (width / 2)}' y='#{y1 + (height / 2)}'>#{name}</text>
 XML
     end

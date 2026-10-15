@@ -4,6 +4,7 @@ require_relative 'point'
 require_relative 'box'
 require_relative 'process_box'
 require_relative 'lines'
+require_relative 'external_mechanism_bus'
 require_relative 'bounds'
 require_relative 'bounds_extension'
 
@@ -33,8 +34,8 @@ module IDEF0
       @height = height
     end
 
-    def box(name)
-      @boxes.get(lambda { |p| p.name == name }) { ProcessBox.new(name) }
+    def box(name, number = "A0")
+      @boxes.get(lambda { |p| p.name == name }) { ProcessBox.new(name, number) }
     end
 
     def top_edge
@@ -148,8 +149,8 @@ viewBox='#{x1.to_f} #{y1.to_f} #{x2.to_f} #{y2.to_f}'
     background-color: white;
   }
   text {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 12px;
+    font-family: "Times New Roman", "Liberation Serif", serif;
+    font-size: 15px;
   }
 </style>
 <g>
@@ -165,7 +166,29 @@ XML
     end
 
     def generate_lines
-      @lines.map(&:to_svg).join("\n")
+      buses = mechanism_buses
+      bus_lines = buses.flat_map(&:lines)
+      drawn = @lines.reject { |line| bus_lines.include?(line) }
+
+      bodies = drawn.map(&:to_svg).join("\n")
+      bodies << "\n" << buses.map(&:to_svg).join("\n")
+
+      labels = drawn.map do |line|
+        background = line.class.name =~ /Guidance|Mechanism/ ? line.label.to_svg_background : ""
+        "#{background}\n#{line.label.to_svg}"
+      end.join("\n")
+      labels << "\n" << buses.map(&:label_to_svg).join("\n")
+
+      "#{bodies}\n#{labels}"
+    end
+
+    def mechanism_buses
+      @lines
+        .select(&:external_mechanism?)
+        .group_by(&:name)
+        .values
+        .select { |lines| lines.count > 1 }
+        .map { |lines| ExternalMechanismBus.new(lines) }
     end
   end
 end

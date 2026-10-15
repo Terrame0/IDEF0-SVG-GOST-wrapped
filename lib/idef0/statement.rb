@@ -5,7 +5,8 @@ require_relative 'string_comment_detection'
 
 module IDEF0
   class Statement
-    FORMAT = /^(#{Noun::PATTERN}) (#{Verb::PATTERN}) (#{Noun::PATTERN})$/
+    CONNECTIVES = "is composed of|receives|respects|requires|produces"
+    FORMAT = /^(#{Noun::PATTERN}) (#{CONNECTIVES}) (#{Noun::PATTERN})$/
 
     attr_reader :subject, :predicate, :object
 

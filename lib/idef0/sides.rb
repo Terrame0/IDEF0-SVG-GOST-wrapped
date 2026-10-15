@@ -87,13 +87,15 @@ module IDEF0
   end
 
   class HorizontalSide < Side
+    SPACING = 180
+
     def y
       y1
     end
 
     def anchor_point(n)
-      baseline = x1+width/2 - 20*(@anchors.count - 1)/2
-      x = baseline + n * 20
+      baseline = x1+width/2 - SPACING*(@anchors.count - 1)/2
+      x = baseline + n * SPACING
       Point.new(x, y)
     end
   end

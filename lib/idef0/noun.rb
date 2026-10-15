@@ -1,6 +1,6 @@
 module IDEF0
   class Noun
-    PATTERN = "[^a-z; ][^; ]*?(?: [^a-z; ][^; ]*?)*"
+    PATTERN = "[^; ][^; ]*?(?: [^; ][^; ]*?)*"
 
     def self.parse(text)
       normalised_text = text.to_s.squish.gsub(/(^|\s)[a-z]/) { |l| l.upcase }
