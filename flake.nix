@@ -4,19 +4,19 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
-    sundry-input.url = "github:Terrame0/sundry";
+    sundry-flake.url = "github:Terrame0/sundry";
   };
 
   outputs = {
     nixpkgs,
     flake-utils,
-    sundry-input,
+    sundry-flake,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
-      sundry = import sundry-input {inherit pkgs;};
+      sundry = import sundry-flake {inherit pkgs;};
       version = "unstable-2018-10-14";
       meta = {
         description = "IDEF0 diagram renderer patched for Cyrillic layout and GOST styling";
