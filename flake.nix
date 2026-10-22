@@ -16,7 +16,7 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
-      sundry = sundry-input.mk-lib {inherit pkgs;};
+      sundry = import sundry-input {inherit pkgs;};
       version = "unstable-2018-10-14";
       meta = {
         description = "IDEF0 diagram renderer patched for Cyrillic layout and GOST styling";

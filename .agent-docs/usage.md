@@ -43,3 +43,17 @@ nix shell nixpkgs#resvg --command resvg --dpi 300 model.svg model.png
 
 See [rasterization.md](rasterization.md) for DPI math, renderer flags, and the
 font setup that keeps the render hermetic.
+
+## Worked example
+
+`samples/hotel.idef0` is a seven-process Cyrillic decomposition (a hotel
+workflow, `A1`–`A7`) with one mechanism, `PMS`, required by every process. It
+exercises node numbering, the GOST font, and external mechanism deduplication —
+the seven `requires PMS` lines collapse into one trunk, bus, and seven branch
+arrows:
+
+```bash
+nix run .#decompose -- "Управление гостиницей" < samples/hotel.idef0 > hotel.svg
+```
+
+The rendered reference is `samples/hotel.svg`.
